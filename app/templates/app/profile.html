@@ -1,0 +1,41 @@
+{%extends 'app/index.html'%}
+
+{%block chatbox%}
+
+<h3><u>Profile Settings</u></h3>
+<div class="container ">
+    {%if sender%}
+
+    <form action="" method="POST" enctype="multipart/form-data" class="form-group form-control my-5">
+        {% csrf_token %}
+        <label for="fname" >First Name</label>
+        <input type="text" class="form-control" name="fname" id="" placeholder="Enter Your First Name" value="{{sender.first_name}}" required>
+        <label for="lname" >Last Name</label>
+        <input type="text" class="form-control" name="lname" id="" placeholder="Enter Your Last Name" value="{{sender.last_name}}" required>
+        <label for="email" >Email</label>
+        <input type="text" class="form-control" name="email" id="" placeholder="Enter Your Email" value="{{sender.email}}" required>
+        <label for="phone" >Phone</label>
+        <input type="text" class="form-control" name="phone" id="" placeholder="Enter Your Phone" value="{{sender.phone}}" required>
+        <label for="image" >Image</label>
+        <input type="file" class="form-control" name="image" id="" required>
+    <input type="submit" class="form-control my-3 btn btn-success" name="" id="" value="Update Profile">
+    </form>
+
+    {%else%}
+<form action="" method="POST" enctype="multipart/form-data" class="form-group form-control my-5">
+    {% csrf_token %}
+    <label for="fname" >First Name</label>
+    <input type="text" class="form-control" name="fname" id="" placeholder="Enter Your First Name" required>
+    <label for="lname" >Last Name</label>
+    <input type="text" class="form-control" name="lname" id="" placeholder="Enter Your Last Name" required>
+    <label for="email" >Email</label>
+    <input type="text" class="form-control" name="email" id="" placeholder="Enter Your Email" required>
+    <label for="phone" >Phone</label>
+    <input type="text" class="form-control" name="phone" id="" placeholder="Enter Your Phone" required>
+    <label for="image" >Image</label>
+    <input type="file" class="form-control" name="image" id="" required>
+<input type="submit" class="form-control my-3 btn btn-success" name="" id="" value="Submit">
+</form>
+{%endif%}
+</div>
+{%endblock%}

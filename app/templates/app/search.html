@@ -1,0 +1,32 @@
+{%extends 'app/index.html'%}
+
+{%block chatbox%}
+
+
+
+<div style="max-height:680px; overflow-y:scroll;">
+    <table class="table table-responsive bg-white">
+        <tr>
+        <th>S.No.</th>
+        <th>Group/Person name</th>
+        <th>Image</th>
+        <th>Created BY</th>
+        <th>Created On</th>
+        <th>Action</th>
+    </tr>
+    {%for i in group%}
+    <tr class="mt-2">
+        <td>{{ forloop.counter }}</td>
+        <td>{{i.name}}</td>
+        <td><img src="{{i.image.url}}" alt="" height="50px" weight="50px"></td>
+        <td>{{i.created_by}}</td>
+        <td>{{i.timestamp}}</td>
+        <td><a href="/join_group/{{i.id}}/" class="btn btn-info">Join</a></td>
+    </tr>
+    {%endfor%}
+    </table>
+</div>
+
+
+
+{%endblock%}

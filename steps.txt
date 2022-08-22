@@ -1,0 +1,806 @@
+#################################
+        WebSocket
+#################################
+
+WebSocket is a full-duplex(two-way comunication) protocol that is the same scenario of client server communication.
+
+It is a stateful protocol, which means the connection between client and server will keep alive until it is terminated by either client or server,
+after closing the connection by either of the client and server, the connection is terminated from both the end.
+
+WebSockets do not use the http:// or https:// scheme( because they do not follow the HTTP protocol).
+rather,WebSockets URIs use a new scheme ws:(or wss: for secure WebSockets).
+
+
+The remainder of the URIs is the same as an HTTP URI: a host,port,path and any query parameters.
+
+Ex :- ws://example.com:8000/ws/chat
+
+####################################
+    How WebSockets Works
+####################################
+
+1) Client sends regular HTTP request with an additional header to be requested.
+2) The server gets the HTTP request and notices the request for the Upgrade header. This lets the server know that we are requesting for a WebSocket connection.
+3) If all goes well persistent connection established between client and server.
+4) Connection can be closed either by client or server.
+
+########################################
+        HTTP v/s WebSocket
+########################################
+
++-----------------------------------------+--------------------------------------------+
+|        HTTP                             |               WebScocket                   |
++-----------------------------------------+--------------------------------------------+
+|1) The HTTP protocol is a unidirectional | 1) WebSocket is a bidirectional            |
+|    protocol that works on top of TCP    |    communication protocol that can send    |
+|    protocol which is a connection-      |    the data from the client to the         |
+|    oriented transport layer protocol,   |    server or from the server to the        |
+|    we can create the connection by      |    client by reusing the established       |
+|    using HTTP request methods after     |    connection channel. The connection      |
+|    getting the response HTTP connection |    is kept alive until terminated by       |
+|    get closed.                          |    either the client or the server.        |
+|                                         |                                            |
++-----------------------------------------+--------------------------------------------+
+|                                         |                                            |
+|2) Simple RESTful application uses HTTP  | 2) Almost all the real-time applications   |
+|    protocol which is stateless.         |    like(trading,monitoring,notification)   |
+|                                         |    services use WebSocket to receive the   |
+|                                         |    data on a single comunication channel.  |
+|                                         |                                            |
++-----------------------------------------+--------------------------------------------+
+|                                         |                                            |
+|3) When we do not want to retain a       | 3) All the frequently updated applications |
+|    connection for a particular amount   |    used WebScocket because it is faster    |
+|    of time or reuse the connection for  |    than HTTP Connection.                   |
+|    transmitting data; An HTTP           |                                            |
+|    connection is slower than            |                                            |
+|    WebSockets.                          |                                            |
+|                                         |                                            |
++-----------------------------------------+--------------------------------------------+
+
+
+###########################################       
+    STATEFULL AND STATELESS Applications
+###########################################
+ A stateful application saves data about each client session and uses that data the next
+ time the client makes a request. When an application is stateless, the server does not 
+ store any state about the client session. Instead, the session data is stored on the 
+ client and passed to the server as needed.
+
+########################################
+        What We can build?
+########################################
+1) Chat Applications
+2) Real-time Web Applications
+3) Notification
+4) Trading application
+5) Location based application
+6) real Time data visualization
+
+########################################
+    When use WebSocket?
+########################################
+WebSockets is not a full-on-replacement for the HTTP protocol so whenever you need continuously real time data stream over the internet, wheteher it be client-to-server or server-to-client only then you should use WebScocket.
+
+########################################
+    When not to use WebSocket?
+########################################
+Whenever you need old data or data only once you should not use Websockets rather you should use HTTP protocol.
+
+
+########################################
+    AJAX vs WebSocket?
+########################################
+1) When the traditional request-response is required then, Ajax can be used
+2) When there is real-time communication involved and fast results are needed, then WebSockets can be used.
+3) In AJAX when you send a request, server sends response for that request and connection ends.
+4) In WebSockets when you establish a connection with server, then you can communicate betwen client and server as much you want and it keeps connection alive.
+
+########################################
+    Where to test WebSocket?
+########################################
+1) websocketking.com
+2) Postman can also be used for testing web scokets along side api testing.
+
+
+
+########################################
+        Django Channels
+########################################
+
+Django Channels extends Django's abilities beyond HTTP - to handle WebSockets,chat protocols,Iot protocols and more.
+
+Channels give you the choice to handle other connections in either a synchronious or asynchronious style.
+
+It provides integrations with Django's auth system,session system, and more, making it easier than ever to extend your HTTP-only project to other protocols.
+
+
+########################################
+    Requirements
+########################################
+1) Python
+2) Django project
+
+########################################
+    Installation and Uninstallation
+########################################
+1) pip install channels
+2) pip uninstall channels
+
+########################################
+Adding channels to django project
+########################################
+
+1) Inside settings.py -> installed aps section
+-> 'channels',   #( On Top)
+
+2) Inside settings.py 
+-> ASGI_APPLICATION="myproject.asgi.application"
+
+3) Inside asgi.py 
+-> from channels.routing import ProtocolTypeRouter
+application = ProtocolTypeRouter({
+    "http":get_asgi_application(),
+    #JustHTTP for now.(We can add other protocols later.)
+})
+
+
+########################################
+    What is ProtocolTypeRouter?
+########################################
+ProtocolTypeRouter lets you dispatch to one of a number of other ASGI applications based on the type value present in the scope.
+
+Protocols will define a fixed type value that their scope contains, so you can use this to distinguish between incoming connection types.
+
+ProtocolTypeRouter should be the top level of your ASGI application stack and the main entry in your routinh file.
+
+It takes a single argument - a dictionary mapping type names to ASGI application that serves them:
+ProtocolTypeRouter({
+    "http":some_app,
+    "websocket":some_other_app,
+})
+
+
+##########################################
+            Consumers
+##########################################
+
+A consumer is the basic unit of Channels code. Consumers are like Django views.
+
+Consumers do following things in part:
+
+1) Structures your code as a series of functions to be called whenever an event happens, rather than making you write an event loop.
+2) Allow you to write synchronous or async code and deals with handsoffs and threading for you.
+
+-------------------------
+Creating Consumers:
+-------------------------
+1) SyncConsumer
+2) AsyncConsumer
+
+A consumer is a subclass of either SyncConsumer or AsyncConsumer.
+
+1) SyncConsumer = SyncConsumer will run code syncroniously in a thredpool.
+
+
+Inside app/consumers.py
+
+--> from channels.consumer import SyncConsumer
+from channels.exceptions import StopConsumer
+class MySyncConsumer(SyncConsumer):
+
+    def websocket_connect(self,event):
+        print('WebScocket Connect......')
+        self.send({
+            'type':'websocket.accept'
+        })
+    def websocket_received(self,event):
+        print('WebScocket Received......')
+        print('Message is',event['text'])
+        self.send({
+            'type':'websocket.send'
+        })
+    def websocket_disconnect(self,event):
+        print('WebScocket Disconnect......')
+        raise StopConsumer()
+
+a) websocket_connect = This handler is called when client iniitially opens a connection and is about to finish the websocket handshake.
+
+b) websocket_received = This handler is called when data received from client.
+
+c) websocket_disconnect = This handler is called when either connection to the client is lost,either the client closing the connection,
+                        the server closing the connection, or loss of the socket.
+
+
+
+2) AsyncConsumer = AsyncConsumer will except you to write async-capable code.
+
+inside app/consumers.py
+from channels.consumer import AsyncConsumer
+from channels.exceptions import StopConsumer
+class MyAsyncConsumer(AsyncConsumer):
+
+    async def websocket_connect(self,event):
+        print('WebScocket Connect......')
+        await self.send({
+            'type':'websocket.accept'
+        })
+    async def websocket_received(self,event):
+        print('WebScocket Received......')
+        print('Message is',event['text'])
+        await self.send({
+            'type':'websocket.send'
+        })
+
+    async def websocket_disconnect(self,event):
+        print('WebScocket Disconnect......')
+        raise StopConsumer()
+
+
+Consumers are structured around a series of named methods corresponding to the type value of the messages they are going to receive,with any .replaced by _ 
+
+Ex :-
+
+websocket.connect message is handled by websocket_connect
+
+##########################################
+            Events
+##########################################
+1) Connect - receive event
+-> Sent to the application when the client initially opens a connection and is about to finish the WebSocket handshake.
+    "type":"websocket.connect"
+
+2) Accept - send event
+-> Sent by the application when it wishes to accept an incomming connection.
+    "type" - "websocket.accept"
+    "subprotocol":None
+    "headers":[name,value] Where name is header and value is header value
+
+3) Receive - receive event
+-> Sent to the application when a data message is received from the client.
+    "type":"websocket.receive".
+    "bytes":None. the message content,if it was binary mode, or None. Optional; if mising, it is equivalent to None.
+    "text":None. The message content,if itwas text mode,or None. optional; if mising,it is equivalent to None.
+
+4) Send - send event
+-> Sent by the application to send a data message to the client.
+    "type":"websocket.send".
+    "bytes":None. the message content,if it was binary mode, or None. Optional; if mising, it is equivalent to None.
+    "text":None. The message content,if itwas text mode,or None. optional; if mising,it is equivalent to None.
+
+5) Disconnect - receive event
+-> Sent to the application when either connection to the client is lost, either from the client closing the connection, the server closing the connection , or loss of the socket.
+    "type":"websocket.disconnect".
+    "code":"the WebSocket close code in it, as per the WebSocket Specifications"
+
+6) Close - send event
+-> Send by the application to tell the server to close the connection.
+    "type":"websocket.close".
+    "code":The WebSocket close in it, as per the WebSocket specification. Optional;if missing defaults to 1000.
+    "reason":"no need" . A reason given for the closure, can be any string. optional; If missing or None default is empty string.
+
+
+    
+##########################################
+            Routing
+##########################################
+Channels provides routing classes that allow you to combine and stack your consumers
+(and any other valid ASGI application) to dispatch based on what the connection is.
+
+we called the as_asgi() classmethod when routing our consumers.
+
+This returns an ASGI wrapper application that will instantiate a new consumer instance for each connection or scope.
+
+This is similar to Django's as_view(), which plays the same role for per-request instances of class-based views.
+
+
+----> Create routing.py File then write all websocket url patterns inside this file.
+
+----> Open asgi.py file and mentioned your routing.py file
+
+----> Inside app/routing.py
+    from django.urls import path
+    from . import consumers
+
+    websocket_urlpatterns=[
+        path('ws/sc',consumers.MySyncConsumer.as_asgi()),
+    ]
+
+----> Inside asgi.py
+    from channels.routing import ProtocolTypeRouter,URLRouter
+    import app.routing
+    application = ProtocolTypeRouter({
+        'http':get_asgi_application(),
+        'websocket':URLRouter(
+            app.routing.websocket_urlpatterns
+        )
+    })
+
+
+
+
+
+#################################################
+            WebSocket At frontend
+#################################################
+
+The WebScocketobjects provides the API for creating and managing a WebSocket
+connection to a aserver, as well as for sending and receiving data on the connection.
+
+To construct a WebSocket,use the WebSocket() constructor.
+
+Example:-
+var ws = new WebSocket('ws://127.0.0.1:8000/ws/sc/');
+
+#################################################
+            WebSocket Properties
+#################################################
+
+1) onopen - The WebSocket.onopen property is an event handler that is called when the WebSocket connection's readyState chhanges to 1; this indicates that the connection is ready to send and receive data. 
+            It is called with an event.
+        EX:
+            ws.onopen = function(event){
+                console.log("WebSocket connection open",event);
+            };
+
+2) onmessage - The WebSocket.onmessage property is an event handler that is called when a message is received from the server.
+                It is called with a MessageEvent.
+        Ex:
+            ws.onmessage = function(event){
+                console.log("WebSocket message received from server",event);
+            };
+
+3) onerror - The WebSocket interface's onerror event handler property is a function which gets called when an error occurs an the WebSocket.
+        Ex:
+            ws.onerror = function(event){
+                console.log("WebSocket Error occured",event);
+            };
+
+4) onclose - The WebSocket.onclose property is an event handler that is called when the WebSocket connection's ready state changes to COLOSED.
+            It is called with a CloseEvent.
+        Ex:
+            ws.onclose = function(event){
+                console.log("WebSocket Connection Closed",event);
+            };
+
+5) binary type
+6) bufferedAmount
+7) extensions
+8) protocol
+9) readyState
+10) url
+
+
+#################################################
+                Events
+#################################################
+
+1) open = The open event is fired when a connection with a WebSocket is opened.
+        EX:
+            ws.addEventlistner('open',(event)=>{
+                console.log("WebSocket Connection open");
+            });
+
+2) message = The message event is fired when data is received through a WebSocket.
+        Ex:
+            ws.addEventlistner('message',(event)=>{
+                console.log('WebSocket message received from server',event);  
+            });
+
+3) error = the error event is fired when a connection with a WebSocket has been closed due to an error.
+        Ex:
+            ws.addEventlistner('error',(event)=>{
+                console.log("Websocket Error occured",event);
+            });
+
+4) close = The close event is fired when a connection with a WebSocket is closed.
+        Ex:
+            ws.addEventlistner('close',(event)=>{
+                console.log("WebSocket connection closed",event);
+            });
+
+#################################################
+                methods
+#################################################
+
+1) close() = the WebSocket.close() method closes the WebSocket connection or connection attempt,if any.
+                If the Connection is already CLOSED, this method does nothing.
+        
+        Syntax:- ws.close(code,reason)
+        
+        code :- A numeric value indicating the statuts code explaining why the connection is being closed. 
+                If this parameter is not specified,a default value of 1005 is asumed.
+                See the list of status code of closeEvent for permitted values.
+
+        reason :- A human-readable string explaining why the connection is closing. This string
+                must be no longer than 123 bytes of UTF-8 text(not characters).
+
+        Ex : ws.close()
+
+2) send() = The WebSocket.send() method enqueues the specified data to be transmitted to the server over the WebSocket connection,increasing the value of buffered Amount bytes
+            the number of bytes neede to contain the data.
+
+            If the data can't be sent, the socket is closed automatically.
+            The browser will throw an exception if you call send() when the connection is in the CONNECTING state.
+            If you call send() when the connection is in the CLOSING or CLOSED states, the browser will silently discard the data.
+
+        Syntax : ws.send(data)
+
+        Ex : es.send("hello")
+
+################################################
+                readyState
+################################################
+
+------------------------------------------------------------------------------
+value |    State   | Description                                             |
+------------------------------------------------------------------------------
+ 0    | CONNECTING | Socket has been created. the connection is not yet open.|
+ 1    | OPEN       | the connection is open and ready to communicate.        |
+ 3    | CLOSING    | The connection is in the process of clsoing.            |
+ 4    | CLOSED     | The connection is closed or couldn't be opened.         |
+ -----------------------------------------------------------------------------
+
+
+
+
+#################################################
+            Converting data to string
+#################################################
+
+Server Side:-
+1)  When Sending Data to Client :
+    Python to string
+
+2)  When Receiving Data From Client:
+    String to Python
+-----------------------------------------------------------------------------------
+==> Python JSON Lib
+import json
+json.dumps() - This method is used to convert Python dictionary into json string.
+json.loads() - This method is used to convert json string into python dictionary.
+-----------------------------------------------------------------------------------
+
+client Side:-
+1)  When Sending Data To Server:
+    JavaScript object to string
+
+2) When Receiving Data from Server:
+    String to JavaScript object
+
+==> JSON
+JSON.parse() - This method is used to convert json string into JavaScript Object.
+JSON.stringify() - This method is used to convert JavaScript object into json string.
+
+
+
+
+###########################################
+            Channel Layers
+###########################################
+Channel layers allow you to talk between different instances of an application.
+
+It is for high-level application-to-application communication.
+
+A channel Layer is the transport mechanism that allows multiple consumer instance to
+communicate with each other and other part of Django.
+
+They're useful part of making a distributed real-time application if you don't wanyt to 
+have to shuttle all your messages or events through a database.
+
+We can implement Channel Layers in tw0 different ways:
+
+1) Redis Channel Layers 
+2) In-memory Channel Layer(This is only recomendem in production not in development)
+
+Some Common Terminologies:-
+
+1) Channels - Channels are a first-in ,first-out queue with at-most-once delivery semantics. Each channel has a name.
+                Messages are sent to channel by anyone who knows the channel name and the given to consumer listening on that channel.
+
+2) Groups - Sending to individual channels isn't particulalr usefl - in most cases you'll want to send to
+            multiple channels/consumers at once as a broadcast and there we use groups.
+            Multiple channels can be grouped into a group. Each group has a name. A channel can be added or
+            removed from agroup by anyone who knows the group name. Using the group name you can also send a message to all channels in the group.
+
+            Groups are a broadcast system that:
+            
+            a) Allows you to add and remove channel names from named groups, and send to those named group.
+            b) Provides group expiry for clean-up of connections whose disconnect handler didn't get to run(e.g. power failure)
+
+3) Messages -  Messages must be a dict. Because these messages are sometimes sent over a network, they
+                need to be serializable.
+
+#################################################
+        Redis Channel layer
+################################################
+
+Redis works as the communication store for the channel layer.
+
+In order to use Redis as a channel layer you have to install channels_redis package.
+
+channels_redis is the only official Django-maintained channel layer supported for
+production use.
+
+The layer uses Redis as its backing store, and supports both a single-server and sharded configurations,as well as
+group support.
+
+
+################################################
+Config Redis Channel Layer
+################################################
+
+1) Download and install Memurai - Redis for windows alternative
+2) Open channels_redis - pip install channels-redis
+3) Open settings.py file then write
+    CHANNEL_LAYERS = {
+        "default":{
+            "BACKEND":"channels_redis.core.RedisChannelLayer",
+            "CONFIG":{
+                "hosts":[("127.0.0.1",6379)],
+            },
+        },
+    }
+
+#################################################
+        Channel layer atributes and methods
+#################################################
+
+1) get_channel_layer() - This function is used to get default channel layer from a project.
+    
+--> from channels.layers import get_channel_layer
+
+2) channel_layer - This attribute is used to get default channel layer from a project. This 
+                    contains a pointer to the channel layer instance, only if you are using consumers.
+
+3) channel_name - This attribute contains the channnel name that will reach the consumer.
+
+
+4) send() - It takes two arguments: the channel to send on, as a unicode string, and the 
+            message to send, as a serializable dict.
+        
+        Sysntax : send('channel_name',message)
+
+5) group_send() - It takes two positioinal arguments; the group to send to, as a unicode
+                    string,a nd the message to send, as a serializable dict. It may raise MessageTooLarge but cannot raise ChannelFull.
+
+                Syntax :- group_send('group_name',message)
+
+6) group_add() - This is used to add a channel to a new orexisting group. If the channel is already in the group, the function should return normally.
+
+                Syntax : group_add('group_name','channel_name')
+
+                Ex : group_add('firends',self.channel_name)
+
+7) group_discard() - This is used to remove channel from the grouop if it is in it, and does nothing otherwise.
+
+                    Syntax : group_discard('group_name','channel_name')
+
+                    Example :- group_discard('friends',self.channel_name)
+-------------------
+Exceptions 
+-------------------
+1) MessageTooLarge - This exception raise when a send operation fails because the encoded message is over the layer's size limit.
+
+2) Channel Full - This exception raised when a send operation fails because the destination channel is over capacity.
+
+
+
+#################################################
+            Dataabase
+#################################################
+
+The Django ORM is a synchronious piece of code,and so if you want to access it from 
+asynchronious code you need to do special handling to make sure its connections are closed properly.
+
+If your using SyncConsumer, or anything based on it - like JsonWebsocketConsumer - 
+you don't need to do anything special,as all your code is already in a synchronious mode and 
+channels will do the cleanup for you as part of the SyncConsumer code.
+
+If your writing asynchronious code, however, you will need to call database methods in a safe,synchronious context,using database_sync_to_async.
+
+##################################################
+    database_sync_to_async
+##################################################
+
+Write your ORM queries in a  separate function or method, and then call it with database_sync_to_async.
+
+Ex:
+
+from channels.db import database_sync_to_async
+
+async def websocket_connect(self):
+self.username = await database_sync_to_async(self.get_name)()
+
+def get_name(self):
+    return User.objects.all[0].name
+
+
+Use it as decorator
+
+@database_sync_to_async
+def get_name(self):
+    return User.objects.all()[0].name
+
+
+
+#################################################
+            Authentication
+#################################################
+Auth Middleware requires SessionMiddleware to function, which itself requires
+CookieMiddleware. For convenience, these are also provided as a combined callable 
+called AuthMiddlewareStack that includes all three.
+
+
+
+from channels.auth import AuthMiddlewareStack
+application = ProtocolTypeRouter({
+    'http':get_asgi_application(),
+    'websocket':AuthMiddlewareStack(
+        URLRouter(
+            app.routing.websocket_urlpatterns
+        )
+    )
+})
+
+To ACCESS THE USER, JUST USE self.scope["user"] in your consumer
+
+
+
+
+
+#################################################
+            Generic Consumers
+#################################################
+
+Channels ships with generic consumers that wrap common functionality up so you don'takes
+need to rewrite it, sepcifically for HTTP and websocket handling.
+
+1) WebSocketConsumer
+2) AsyncWebSocketConsumer
+
+1) JsonWebsocketConsumer
+2) AsyncJsonWebSocketConsumer
+
+
+
+##################################################
+            WebScocket Consumers
+##################################################
+
+This wraps the verbose plain-ASGI message sending and receiving into handling thatjust deals with text and binary frames.
+
+from channels.generic.websocket import WebSocketConsumer
+class MyWebSocketConsumer(WebsocketConsumer):
+
+1) connect(self) - This handler is called when client initially opens a connection and is about to finish the Websocket handshake.
+
+2) receive(self,text_data=None,bytes_data=None) - This handler is aclled when data received from client.
+
+3) disconnect(self,close_code) - This handler is called when either connection to the client is lost,
+    either from the client closiung thre connection, the server closing the connection, or loss of the socket.
+
+4) accept() - This is used to accept the connection
+
+5) accept("subprotocol") - this is used to accept the connection and specify a chosen
+    subprotocol.
+
+6) close() - this is used to reject the connection.
+
+7) colse(code=4123) - this is used to reject connection with custom websocket error code.
+
+8) send(text_data="String") - this is used to send Data to client.
+
+9) send(bytes_data=data) - This is used to send Binary Frame To client.
+
+
+Ex:
+
+class MyWebSocketConsumer(WebsocketConsumer):
+    def connect(self):
+        print("Websocket Connected.....")
+        self.accept()
+
+    def receive(self,text_data=None,bytes_data=None):
+        print("Message Receive From client....." , text_data)
+        self.send(text_data="Hello World")
+
+    def disconnect(self,close_code):
+        print('Websocket Disconnect....',close_code)
+
+
+##############################################################
+                AsyncWebSocketConsumer
+#############################################################
+
+This has the exact same methods and signature as WebsocketConsumer but everything
+is async, and the functions you need to write have to be as well.
+
+
+Ex:
+
+class MyAsyncWebSocketConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        print("Websocket Connected.....")
+        await self.accept()
+
+    async def receive(self,text_data=None,bytes_data=None):
+        print("Message Receive From client....." , text_data)
+        await self.send(text_data="Hello World")
+
+    async def disconnect(self,close_code):
+        print('Websocket Disconnect....',close_code)
+
+
+
+
+######################################################
+            JsonWebsocketConsumer
+######################################################
+
+This works like WebsocketConsumer,except it will auto-encode and decode to json send as 
+Websocket text Frames.
+
+from chaneels.generic.websocket import JsonWebsocketConsumer
+
+class MyJsonWebsocketConsumer(JsonWebsocketConsumer):
+
+
+1) connect(self) - this handler is called when client initiallly opens a connection and is about to finish the websocket handshake.
+
+2) receive_self(self,content,**kwargs) - this handler is called when data received from client. this
+            method must take a single argument, content, that is the decoded JSON object.
+
+3) disconnect(self,close_code) - this handler is called when either connection to the client    
+                is lost,either from the client closing the connection , the server closing the connection, or loss of the socket.
+
+
+4) accept() - This is used to acept the connection.
+
+5) accept("supprotocol") - This is used to accept the connection and specify a chosen subprotocol.
+
+6) close() - this is used to reject the connection.
+
+7) close(code=4123) - this is ussed to reject connection with custom websocket eror code.
+
+8) send_json(content) - This is used to Encode the given content as JSON and send it to the client.
+
+EX:
+
+class MyJsonWebsocketConsumer(JsonWebsocketConsumer):
+
+    def connect(self):
+        print('websocket Connected.....')
+        self.accept()
+
+    def receceive_json(self,content,**kwargs):
+        print('Message Received From client....',content)
+        self.send_json({'message':"Message sent to client"})
+
+    def disconnect(self,close_code):
+        print('Websocket Disconnected....',close_code)
+
+
+
+#####################################################
+        AsyncJsonWebSocketConsumer
+#######################################################
+
+This has the exact same methods and signature as JsonWebsocketConsumer buteverithing is async, and the functions you need to write have to be as well.
+
+from channels.generic.websocket import AsyncJsonWebSocketConsumer
+
+Ex:
+
+class MyAsyncWebSocketConsumer(AsyncJsonWebSocketConsumer):
+    
+    async def connect(self):
+        print('websocket connected....')
+        await self.accept()
+
+    async def receive_json(self,content,**kwargs):
+        print('Message received From Client.....',cpontent)
+        await self.send_json({'message':'Message sent to client'})
+
+    async def disconnect(self,close_code):
+        print('Websocket Disconnect.....',close_code)

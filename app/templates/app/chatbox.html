@@ -1,0 +1,192 @@
+{%extends 'app/index.html'%}
+
+{%block chatbox%}
+<style>
+
+        
+    @media screen and (max-width: 480px) {
+
+        nav{
+            display: none !important;
+        }
+        #channel{
+            display: none;
+        }
+        #search_add{
+            display: none;
+        }
+        #chatboxdiv{
+            border-bottom: 2px solid blue;margin-top: -25px;
+        }
+        #backarrow{
+            display: block;
+        }
+}
+</style>
+<div class="container-fluid" id="chatboxdiv">
+
+    <table style="width: -webkit-fill-available;">
+        <tr>
+            <td>
+                <a href="/index/">
+                    <h3 id="backarrow"><i class="fa fa-arrow-left" aria-hidden="true"></h3></i>
+                </a>
+            </td>
+
+            <td>
+                <h3 class="text-primary" style="float: right;">
+
+                    <img src="{{group.image.url}}" alt="" id="myImg" style="height: 60px;width: 60px;border-radius: 100px;"
+                        class="p-1" />{{group_name}}
+                </h3>
+            </td>
+        </tr>
+    </table>
+
+</div>
+<div id="chat-log" class="mt-1" style="height:515px; overflow-x:auto;">
+    <ul id="content" style="padding-right:10px;">
+        {%for chat in chats%}
+        <li id="{{chat.sender}}">
+            <div>
+                <a href="{{chat.sender.email}}/"><img class="w-32 h-32 rounded-full mx-auto"
+                        src="{{ chat.sender.image.url}}" alt="" width="50" height="50" style="border-radius: 100%;"></a>
+                {{chat.content}}
+            </div><small style="color:blue;">{{chat.timestamp}}</small>
+        </li>
+        <!-- {{ user.socialaccount_set.all.0.extra_data.name }}! -->
+        {%endfor%}
+    </ul>
+</div>
+<br>
+<div>
+    <input type="text" id="chat_message_input" size="100" placeholder="Enter Message" required>
+    <input type="button" value="Send" id="chat_message_submit" class="btn btn-primary">
+</div>
+
+
+{{group_name|json_script:"group-name"}}
+{{user.username|json_script:"sender"}}
+<script>
+
+    const groupName = JSON.parse(document.getElementById('group-name').textContent)
+
+    console.log('Group_name...', groupName)
+
+    // var ws = new WebSocket('ws://127.0.0.1:8000/ws/sc/')
+    // var ws = new WebSocket('ws://127.0.0.1:8000/ws/ac/')
+    // var ws = new WebSocket('ws://'+ window.location.host+'/ws/sc/'+groupName+'/')
+    var ws = new WebSocket('ws://' + window.location.host + '/ws/ac/' + groupName + '/')
+
+    ws.onopen = function () {
+        console.log('websocket connection open........')
+        // ws.send('Hi from client...............')
+    }
+    ws.onmessage = function (event) {
+        // print(event, '&&&&&&&&&&&&&&&&&')
+        // console.log('Message received from server...........', event.data)
+        const data = JSON.parse(event.data)
+        // console.log('actual message', data.msg)
+        // console.log('user.........', data.user)
+        // document.querySelector('#chat-log').value += (data.msg + '\n')
+        var li = document.createElement("li");
+        var p = document.createElement("p");
+        var img = document.createElement("img");
+        var small = document.createElement("small");
+        img.src = data.image
+        img.style.height = '50px';
+        img.style.width = '50px';
+        img.style.borderRadius = "100%";
+        p.innerHTML = data.msg
+        var today = new Date().toLocaleString('en-GB', { timeZone: 'Asia/Kolkata' });
+        small.innerHTML = today;
+        small.style.color = "blue";
+        li.appendChild(img);
+        li.appendChild(p);
+        li.appendChild(small);
+        li.id = data.user
+        if ((data.user).toLowerCase() == ("{{user.username}}").toLowerCase()) {
+            // lis[i].style.backgroundColor = 'yellow';
+            li.style.marginRight = '0px';
+            li.style.marginLeft = 'auto';
+        }
+
+        document.getElementById("content").appendChild(li);
+        var objDiv = document.getElementById("chat-log");
+        objDiv.scrollTop = objDiv.scrollHeight;
+        // window.location.reload(true)
+
+    }
+
+    ws.onclose = function (event) {
+        console.error('Websocket connection closed unexpectedly................');
+    }
+
+    document.getElementById('chat_message_submit').onclick =
+        function (event) {
+            const messageinputDom = document.getElementById('chat_message_input')
+            const message = messageinputDom.value
+            if (message == "") {
+                window.alert("Empty Message Not Allowed")
+            }
+            else {
+                ws.send(JSON.stringify({
+                    'msg': message,
+                    'sender': "{{user.username}}",
+                    'image':"{{profile.image.url}}"
+
+                }))
+                // window.location.reload(true)
+                messageinputDom.value = ''
+            }
+
+        }
+
+</script>
+
+<script>
+    var lis = document.getElementById("content").getElementsByTagName("li");
+    for (let i = 0; i < lis.length; i++) {
+        // console.log(lis[i].id)
+        console.log("{{user.username}}")
+        if ((lis[i].id).toLowerCase() == ("{{user.username}}").toLowerCase()) {
+            // lis[i].style.backgroundColor = 'yellow';
+            lis[i].style.marginRight = '0px';
+            lis[i].style.marginLeft = 'auto';
+        }
+    }
+        // console.log(lis)
+</script>
+
+<script>
+    // var el = document.getElementById("chat-log");
+    // // To increment the scroll
+    // el.scrollTop += 3000;
+    var objDiv = document.getElementById("chat-log");
+    objDiv.scrollTop = objDiv.scrollHeight;
+
+</script>
+
+<script>
+    var input = document.getElementById("chat_message_input");
+    input.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+
+            document.getElementById("chat_message_submit").click();
+        }
+    });
+    window.onload = function () {
+        document.getElementById("chat_message_input").focus();
+    }
+</script>
+
+
+<script>
+    var body = document.getElementsByTagName('body')[0];
+    document.body.style.backgroundImage = "url(/media/{{group.background}})";
+    document.body.style.backgroundSize = "cover";
+
+</script>
+
+
+{%endblock%}
